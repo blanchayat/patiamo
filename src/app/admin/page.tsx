@@ -1,0 +1,479 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+
+type Slot = { id: string; date: string; time: string; is_available: boolean };
+type Booking = {
+  id: string;
+  name: string;
+  phone: string;
+  date: string;
+  time: string;
+  duration: string;
+  area: string;
+  note: string | null;
+  status: "pending" | "confirmed" | "cancelled";
+  created_at: string;
+};
+
+async function safeReadJson(res: Response): Promise<any | null> {
+  const contentType = res.headers.get("content-type") ?? "";
+  if (contentType.includes("application/json")) {
+    try {
+      return await res.json();
+    } catch {
+      return null;
+    }
+  }
+
+  try {
+    const txt = await res.text();
+    if (!txt) return null;
+    return JSON.parse(txt);
+  } catch {
+    return null;
+  }
+}
+
+function toBooleanAvailability(v: unknown): boolean {
+  if (v === true || v === "true") return true;
+  if (v === false || v === "false") return false;
+  return Boolean(v);
+}
+
+export default function AdminPage() {
+  const [token, setToken] = useState("");
+  const [date, setDate] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [time, setTime] = useState("09:00");
+  const [isAvailable, setIsAvailable] = useState(true);
+
+  const [slots, setSlots] = useState<Slot[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const headers = useMemo(() => ({ "x-admin-token": token }), [token]);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("admin_token");
+      if (stored && stored.trim()) {
+        setToken(stored.trim());
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      const v = token.trim();
+      if (v) localStorage.setItem("admin_token", v);
+      else localStorage.removeItem("admin_token");
+    } catch {
+      // ignore
+    }
+  }, [token]);
+
+  async function loadAll() {
+    setLoading(true);
+    setError("");
+    try {
+      const [sRes, bRes] = await Promise.all([
+        fetch(`/api/admin/availability?date=${encodeURIComponent(date)}`, { headers, cache: "no-store" }),
+        fetch(`/api/admin/bookings`, { headers, cache: "no-store" }),
+      ]);
+
+      const sJson = await safeReadJson(sRes);
+      const bJson = await safeReadJson(bRes);
+
+      if (!sRes.ok) {
+        throw new Error(sJson?.error ?? "Slotlar alınamadı.");
+      }
+      if (!bRes.ok) {
+        throw new Error(bJson?.error ?? "Talepler alınamadı.");
+      }
+
+      const slotsData = sJson?.data?.slots ?? sJson?.slots ?? [];
+      setSlots(slotsData);
+      const bookingsData = bJson?.data?.bookings ?? bJson?.bookings ?? [];
+      setBookings(bookingsData);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Bir hata oluştu, lütfen tekrar deneyin.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!token) return;
+    loadAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, date]);
+
+  async function addSlot() {
+    setError("");
+    if (!token.trim()) {
+      setError("Admin token girmen gerekiyor.");
+      return;
+    }
+    try {
+      const isAvailableBool = toBooleanAvailability(isAvailable);
+      const res = await fetch("/api/admin/availability", {
+        method: "POST",
+        headers: { ...headers, "content-type": "application/json" },
+        body: JSON.stringify({ date, time, is_available: isAvailableBool }),
+      });
+      const json = await safeReadJson(res);
+      if (!res.ok) {
+        setError(json?.error ?? "Slot eklenemedi.");
+        return;
+      }
+      if (!json) {
+        setError("Sunucudan geçerli yanıt alınamadı.");
+        return;
+      }
+      await loadAll();
+    } catch {
+      setError("Bir hata oluştu, lütfen tekrar deneyin.");
+    }
+  }
+
+  async function toggleSlot(s: Slot) {
+    setError("");
+    if (!token.trim()) {
+      setError("Admin token girmen gerekiyor.");
+      return;
+    }
+    try {
+      const nextAvailability = !toBooleanAvailability(s.is_available);
+      const res = await fetch("/api/admin/availability", {
+        method: "PATCH",
+        headers: { ...headers, "content-type": "application/json" },
+        body: JSON.stringify({ id: s.id, is_available: nextAvailability }),
+      });
+      const json = await safeReadJson(res);
+      if (!res.ok) {
+        setError(json?.error ?? "Slot güncellenemedi.");
+        return;
+      }
+      if (!json) {
+        setError("Sunucudan geçerli yanıt alınamadı.");
+        return;
+      }
+      await loadAll();
+    } catch {
+      setError("Bir hata oluştu, lütfen tekrar deneyin.");
+    }
+  }
+
+  async function deleteSlot(id: string) {
+    setError("");
+    if (!token.trim()) {
+      setError("Admin token girmen gerekiyor.");
+      return;
+    }
+    try {
+      const res = await fetch(`/api/admin/availability?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        headers,
+      });
+      const json = await safeReadJson(res);
+      if (!res.ok) {
+        setError(json?.error ?? "Slot silinemedi.");
+        return;
+      }
+      if (!json) {
+        setError("Sunucudan geçerli yanıt alınamadı.");
+        return;
+      }
+      await loadAll();
+    } catch {
+      setError("Bir hata oluştu, lütfen tekrar deneyin.");
+    }
+  }
+
+  async function confirmBooking(id: string) {
+    setError("");
+    if (!token.trim()) {
+      setError("Admin token girmen gerekiyor.");
+      return;
+    }
+    try {
+      const res = await fetch(`/api/admin/bookings/${encodeURIComponent(id)}/confirm`, {
+        method: "POST",
+        headers,
+      });
+      const json = await safeReadJson(res);
+      if (!res.ok) {
+        setError(json?.error ?? "Onay işlemi başarısız.");
+        return;
+      }
+      if (!json) {
+        setError("Sunucudan geçerli yanıt alınamadı.");
+        return;
+      }
+      await loadAll();
+    } catch {
+      setError("Bir hata oluştu, lütfen tekrar deneyin.");
+    }
+  }
+
+  async function cancelBooking(id: string) {
+    setError("");
+    if (!token.trim()) {
+      setError("Admin token girmen gerekiyor.");
+      return;
+    }
+    try {
+      const res = await fetch(`/api/admin/bookings/${encodeURIComponent(id)}/cancel`, {
+        method: "POST",
+        headers,
+      });
+      const json = await safeReadJson(res);
+      if (!res.ok) {
+        setError(json?.error ?? "İptal işlemi başarısız.");
+        return;
+      }
+      if (!json) {
+        setError("Sunucudan geçerli yanıt alınamadı.");
+        return;
+      }
+      await loadAll();
+    } catch {
+      setError("Bir hata oluştu, lütfen tekrar deneyin.");
+    }
+  }
+
+  return (
+    <div
+      className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-5 py-10"
+      style={{ background: "var(--background)" }}
+    >
+      <header className="mb-8 flex items-center justify-between">
+        <Link href="/" className="text-sm transition hover:brightness-75" style={{ color: "var(--text-muted)" }}>
+          ← Ana sayfa
+        </Link>
+        <div className="text-sm font-medium tracking-[0.16em]" style={{ color: "var(--text)" }}>
+          PATİAMO • Admin
+        </div>
+      </header>
+
+      <h1 className="text-2xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+        Yönetim
+      </h1>
+      <p className="mt-2" style={{ color: "var(--text-muted)" }}>
+        Uygun saatleri yönetin ve talepleri onaylayın/iptal edin.
+      </p>
+
+      <section
+        className="mt-6 rounded-2xl p-5 shadow-sm"
+        style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+      >
+        <label className="block text-sm font-medium" style={{ color: "var(--text)" }}>
+          Admin Token
+        </label>
+        <input
+          className="mt-2 w-full rounded-2xl px-4 py-3 outline-none"
+          style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
+          value={token}
+          onChange={(e) => setToken(e.target.value)}
+          placeholder="ADMIN_TOKEN"
+        />
+        <div className="mt-3 text-xs" style={{ color: "var(--text-muted)" }}>
+          Token sadece bu tarayıcıda tutulur.
+        </div>
+      </section>
+
+      {token ? (
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          <section
+            className="rounded-2xl p-5 shadow-sm"
+            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
+                Uygun Saatler
+              </div>
+              {loading ? (
+                <div className="text-xs" style={{ color: "var(--text-muted)" }}>
+                  Yükleniyor…
+                </div>
+              ) : null}
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div>
+                <label className="block text-xs" style={{ color: "var(--text-muted)" }}>
+                  Tarih
+                </label>
+                <input
+                  type="date"
+                  className="mt-1 w-full rounded-2xl px-3 py-2 outline-none"
+                  style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-xs" style={{ color: "var(--text-muted)" }}>
+                  Saat
+                </label>
+                <input
+                  type="time"
+                  className="mt-1 w-full rounded-2xl px-3 py-2 outline-none"
+                  style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-xs" style={{ color: "var(--text-muted)" }}>
+                  Durum
+                </label>
+                <select
+                  className="mt-1 w-full rounded-2xl bg-transparent px-3 py-2 outline-none"
+                  style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
+                  value={isAvailable ? "true" : "false"}
+                  onChange={(e) => setIsAvailable(e.target.value === "true")}
+                >
+                  <option value="true">Müsait</option>
+                  <option value="false">Kapalı</option>
+                </select>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={addSlot}
+              className="mt-4 h-11 w-full rounded-2xl text-sm font-medium text-white shadow-sm transition hover:brightness-95"
+              style={{ background: "var(--primary-strong)" }}
+            >
+              Slot Ekle / Güncelle
+            </button>
+
+            <div className="mt-5 divide-y rounded-2xl" style={{ border: "1px solid var(--border)", background: "var(--surface)" }}>
+              {slots.length === 0 ? (
+                <div className="p-4 text-sm" style={{ color: "var(--text-muted)" }}>
+                  Bu tarih için slot yok.
+                </div>
+              ) : (
+                slots.map((s) => (
+                  <div key={s.id} className="flex items-center justify-between gap-3 p-4">
+                    <div>
+                      <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
+                        {s.time}
+                      </div>
+                      <div className="text-xs" style={{ color: "var(--text-muted)" }}>
+                        {s.is_available ? "Müsait" : "Kapalı"}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => toggleSlot(s)}
+                        className="h-9 rounded-2xl px-3 text-xs font-medium shadow-sm transition hover:brightness-95"
+                        style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text)" }}
+                      >
+                        {s.is_available ? "Kapat" : "Aç"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteSlot(s.id)}
+                        className="h-9 rounded-2xl px-3 text-xs font-medium shadow-sm transition hover:brightness-95"
+                        style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text)" }}
+                      >
+                        Sil
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
+
+          <section
+            className="rounded-2xl p-5 shadow-sm"
+            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
+                Randevu Talepleri
+              </div>
+              <button
+                type="button"
+                onClick={loadAll}
+                className="h-9 rounded-2xl px-3 text-xs font-medium shadow-sm transition hover:brightness-95"
+                style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text)" }}
+              >
+                Yenile
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-3">
+              {bookings.length === 0 ? (
+                <div className="rounded-2xl p-4 text-sm" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-muted)" }}>
+                  Henüz talep yok.
+                </div>
+              ) : (
+                bookings.map((b) => (
+                  <div key={b.id} className="rounded-2xl p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
+                          {b.name}
+                        </div>
+                        <div className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
+                          {b.date} • {b.time} • {b.duration} • {b.area}
+                        </div>
+                        <div className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
+                          {b.phone}
+                        </div>
+                        {b.note ? (
+                          <div className="mt-2 text-xs" style={{ color: "var(--text-muted)" }}>
+                            Not: {b.note}
+                          </div>
+                        ) : null}
+                      </div>
+                      <div className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
+                        {b.status}
+                      </div>
+                    </div>
+
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => confirmBooking(b.id)}
+                        disabled={b.status === "confirmed"}
+                        className="h-9 flex-1 rounded-2xl px-3 text-xs font-medium text-white shadow-sm transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
+                        style={{ background: "var(--primary-strong)" }}
+                      >
+                        Onayla
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => cancelBooking(b.id)}
+                        disabled={b.status === "cancelled"}
+                        className="h-9 flex-1 rounded-2xl px-3 text-xs font-medium shadow-sm transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
+                        style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text)" }}
+                      >
+                        İptal
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {error ? (
+        <div className="mt-6 rounded-2xl p-4 text-sm" style={{ background: "rgba(217, 154, 130, 0.18)", color: "var(--text)" }}>
+          {error}
+        </div>
+      ) : null}
+    </div>
+  );
+}
