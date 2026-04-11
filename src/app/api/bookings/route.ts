@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAnonServer } from "@/lib/supabaseServer";
+import { supabaseServiceServer } from "@/lib/supabaseServer";
 import { isValidTimeSlot, isValidTurkishPhone, normalizePhone } from "@/lib/validators";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
+
   if (!body) {
     return NextResponse.json({ error: "Geçersiz istek" }, { status: 400 });
   }
@@ -17,34 +18,67 @@ export async function POST(req: NextRequest) {
   const area = String(body.area ?? "").trim();
   const note = String(body.note ?? "").trim();
 
-  if (!name) return NextResponse.json({ error: "Ad Soyad zorunludur" }, { status: 400 });
+  if (!name) {
+    return NextResponse.json({ error: "Ad Soyad zorunludur" }, { status: 400 });
+  }
+
   if (!isValidTurkishPhone(phone)) {
     return NextResponse.json({ error: "Telefon numarası geçersiz" }, { status: 400 });
   }
-  if (!date) return NextResponse.json({ error: "Tarih zorunludur" }, { status: 400 });
+
+  if (!date) {
+    return NextResponse.json({ error: "Tarih zorunludur" }, { status: 400 });
+  }
+
   if (!time || !isValidTimeSlot(time)) {
     return NextResponse.json({ error: "Saat geçersiz" }, { status: 400 });
   }
+
   if (duration !== "30 dk" && duration !== "60 dk") {
     return NextResponse.json({ error: "Süre seçiniz" }, { status: 400 });
   }
+
   if (area !== "Nişantaşı" && area !== "Bebek" && area !== "Emirgan") {
     return NextResponse.json({ error: "Bölge seçiniz" }, { status: 400 });
   }
 
-  const supabase = supabaseAnonServer();
+  // Date frontend'den zaten YYYY-MM-DD formatında geliyor.
+  // toISOString kullanmıyoruz çünkü timezone kaymasına neden oluyor.
+  const normalizedDate = date;
+  const normalizedTime = time.padStart(5, "0").trim();
+  const normalizedTimeWithSeconds =
+    normalizedTime.length === 5 ? `${normalizedTime}:00` : normalizedTime;
 
-  // Prevent creating booking requests for already unavailable slots
-  const { data: slot, error: slotErr } = await supabase
+  const supabase = supabaseServiceServer();
+
+  const { data: slotPrimary, error: slotErrPrimary } = await supabase
     .from("availability")
-    .select("id,is_available")
-    .eq("date", date)
-    .eq("time", time)
+    .select("id,is_available,time")
+    .eq("date", normalizedDate)
+    .eq("time", normalizedTime)
     .maybeSingle();
+
+  const { data: slotSecondary, error: slotErrSecondary } = slotPrimary
+    ? { data: null, error: null }
+    : await supabase
+        .from("availability")
+        .select("id,is_available,time")
+        .eq("date", normalizedDate)
+        .eq("time", normalizedTimeWithSeconds)
+        .maybeSingle();
+
+  const slot = slotPrimary ?? slotSecondary;
+  const slotErr = slotErrPrimary ?? slotErrSecondary;
+  const matchedTime = slotPrimary
+    ? normalizedTime
+    : slotSecondary
+      ? normalizedTimeWithSeconds
+      : null;
 
   if (slotErr) {
     return NextResponse.json({ error: slotErr.message }, { status: 500 });
   }
+
   if (!slot || slot.is_available !== true) {
     return NextResponse.json(
       { error: "Bu saat dilimi şu anda müsait değil" },
@@ -52,11 +86,27 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const { data: existingBooking, error: existingBookingErr } = await supabase
+    .from("bookings")
+    .select("id,status")
+    .eq("date", normalizedDate)
+    .in("time", [normalizedTime, normalizedTimeWithSeconds])
+    .in("status", ["pending", "confirmed"])
+    .maybeSingle();
+
+  if (existingBookingErr) {
+    return NextResponse.json({ error: existingBookingErr.message }, { status: 500 });
+  }
+
+  if (existingBooking) {
+    return NextResponse.json({ error: "Bu saat için zaten talep var" }, { status: 409 });
+  }
+
   const { error } = await supabase.from("bookings").insert({
     name,
     phone,
-    date,
-    time,
+    date: normalizedDate,
+    time: matchedTime ?? normalizedTime,
     duration,
     area,
     note: note || null,
@@ -64,7 +114,6 @@ export async function POST(req: NextRequest) {
   });
 
   if (error) {
-    // Unique index may block duplicate pending/confirmed slot requests
     const msg = error.code === "23505" ? "Bu saat için zaten talep var" : error.message;
     return NextResponse.json({ error: msg }, { status: 409 });
   }
