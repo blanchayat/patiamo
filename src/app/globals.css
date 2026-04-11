@@ -28,5 +28,31 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 .animate-fadeInUp {
-  animation: fadeInUp 0.65s ease forwards;
+  animation: fadeInUp 0.55s ease-out both;
+}
+
+@keyframes starFloat {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(-2deg);
+  }
+  50% {
+    transform: translate3d(0, -10px, 0) rotate(2deg);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-2deg);
+  }
+}
+
+.star-float {
+  animation: starFloat 5.2s ease-in-out infinite;
+}
+
+.star-float-delay-1 {
+  animation-delay: 0.7s;
+  animation-duration: 5.8s;
+}
+
+.star-float-delay-2 {
+  animation-delay: 1.4s;
+  animation-duration: 6.2s;
 }

@@ -101,16 +101,43 @@ export default function RandevuPage() {
           </Link>
         </header>
 
-        <div
-          className="rounded-2xl p-6 shadow-sm"
-          style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-        >
-          <h1 className="text-xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
-            Talebiniz alındı
-          </h1>
-          <p className="mt-3" style={{ color: "var(--text-muted)" }}>
-            Randevu talebiniz alınmıştır. Onay için sizinle iletişime geçilecektir.
-          </p>
+        <div className="relative">
+          <Image
+            src="/stars.png"
+            alt=""
+            width={80}
+            height={80}
+            className="star-float pointer-events-none absolute -left-3 -top-4 h-10 w-10 opacity-60 sm:-left-6 sm:-top-6 sm:h-14 sm:w-14"
+            aria-hidden="true"
+          />
+          <Image
+            src="/stars.png"
+            alt=""
+            width={80}
+            height={80}
+            className="star-float star-float-delay-1 pointer-events-none absolute -right-3 -top-5 h-12 w-12 opacity-60 sm:-right-6 sm:-top-7 sm:h-16 sm:w-16"
+            aria-hidden="true"
+          />
+          <Image
+            src="/stars.png"
+            alt=""
+            width={80}
+            height={80}
+            className="star-float star-float-delay-2 pointer-events-none absolute -bottom-5 -right-2 hidden h-12 w-12 opacity-60 sm:block sm:-bottom-7 sm:-right-4 sm:h-16 sm:w-16"
+            aria-hidden="true"
+          />
+
+          <div
+            className="rounded-2xl p-6 shadow-sm"
+            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+          >
+            <h1 className="text-xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+              Talebiniz alındı
+            </h1>
+            <p className="mt-3" style={{ color: "var(--text-muted)" }}>
+              Randevu talebiniz alınmıştır. Onay için sizinle iletişime geçilecektir.
+            </p>
+          </div>
         </div>
       </div>
     );

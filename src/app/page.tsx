@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import Reveal from "./Reveal";
+import WalkRoutesSection from "./WalkRoutesSection";
 
 function Paw({ className, style }: { className: string; style: CSSProperties }) {
   return (
@@ -249,6 +250,8 @@ export default function Home() {
             </Reveal>
           </div>
         </section>
+
+        <WalkRoutesSection />
 
         <section className="relative z-10 mt-12">
           <Paw
