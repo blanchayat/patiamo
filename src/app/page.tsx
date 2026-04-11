@@ -254,24 +254,6 @@ export default function Home() {
         <WalkRoutesSection />
 
         <section className="relative z-10 mt-12">
-          <Paw
-            className="pointer-events-none absolute -left-3 -bottom-3 hidden h-12 w-12 sm:block"
-            style={{ color: "var(--primary-strong)", opacity: 0.06 }}
-          />
-          <div
-            className="rounded-2xl p-6 shadow-sm"
-            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-          >
-            <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
-              Hizmet Bölgesi
-            </div>
-            <div className="mt-3 text-sm" style={{ color: "var(--text-muted)" }}>
-              Nişantaşı, Bebek ve Emirgan çevresinde hizmet verilmektedir.
-            </div>
-          </div>
-        </section>
-
-        <section className="relative z-10 mt-12">
           <div
             className="rounded-3xl p-6 shadow-sm sm:p-8"
             style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
