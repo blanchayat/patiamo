@@ -225,7 +225,7 @@ export default function RandevuPage() {
                       setSelectedTime(t);
                     }}
                     disabled={unavailable}
-                    className="h-12 rounded-2xl px-3 text-sm font-medium shadow-sm transition"
+                    className="relative h-12 rounded-2xl px-3 text-sm font-medium shadow-sm transition"
                     style={
                       unavailable
                         ? {
@@ -242,6 +242,14 @@ export default function RandevuPage() {
                     }
                   >
                     {t}
+                    {unavailable ? (
+                      <span
+                        className="pointer-events-none absolute right-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                        style={{ background: "rgba(61,32,9,0.08)", color: "var(--text-muted)", border: "1px solid var(--border)" }}
+                      >
+                        Dolu
+                      </span>
+                    ) : null}
                   </button>
                 );
               })}
