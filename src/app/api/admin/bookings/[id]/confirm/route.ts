@@ -11,9 +11,28 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
     if (!id) return NextResponse.json({ error: "id zorunludur" }, { status: 400 });
 
     const supabase = supabaseServiceServer();
-    const { error } = await supabase.rpc("confirm_booking", { p_booking_id: id });
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 409 });
+    const { data: booking, error: bookingErr } = await supabase
+      .from("bookings")
+      .update({ status: "confirmed" })
+      .eq("id", id)
+      .select("id,date,time,status")
+      .single();
+
+    if (bookingErr) return NextResponse.json({ error: bookingErr.message }, { status: 409 });
+
+    const bookingTime = String(booking?.time ?? "");
+    const bookingDate = String(booking?.date ?? "");
+    const bookingTimeWithSeconds = bookingTime.length === 5 ? `${bookingTime}:00` : bookingTime;
+
+    const { error: availabilityErr } = await supabase
+      .from("availability")
+      .update({ is_available: false })
+      .eq("date", bookingDate)
+      .in("time", [bookingTime, bookingTimeWithSeconds]);
+
+    if (availabilityErr) return NextResponse.json({ error: availabilityErr.message }, { status: 409 });
+
     return NextResponse.json({ success: true });
   } catch (e) {
     return NextResponse.json(

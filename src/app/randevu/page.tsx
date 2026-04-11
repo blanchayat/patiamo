@@ -29,7 +29,7 @@ export default function RandevuPage() {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState(false);
 
-  const availableTimes = useMemo(() => slots.map((s) => s.time), [slots]);
+  const orderedSlots = useMemo(() => slots, [slots]);
 
   useEffect(() => {
     let cancelled = false;
@@ -39,9 +39,12 @@ export default function RandevuPage() {
       setError("");
       setSelectedTime("");
       try {
-        const res = await fetch(`/api/availability?date=${encodeURIComponent(selectedDate)}`, {
-          cache: "no-store",
-        });
+        const res = await fetch(
+          `/api/availability?date=${encodeURIComponent(selectedDate)}&include_unavailable=1`,
+          {
+            cache: "no-store",
+          },
+        );
         const json = await res.json();
         if (!res.ok) throw new Error(json?.error ?? "Slotlar alınamadı");
         if (!cancelled) setSlots(json.slots ?? []);
@@ -90,53 +93,50 @@ export default function RandevuPage() {
 
   if (success) {
     return (
-      <div className="mx-auto flex w-full max-w-xl flex-1 flex-col px-5 py-10" style={{ background: "var(--background)" }}>
-        <header className="mb-8">
-          <Link
-            href="/"
-            className="text-sm transition"
-            style={{ color: "var(--text-muted)" }}
-          >
-            ← Ana sayfa
-          </Link>
-        </header>
+      <div className="relative flex min-h-screen w-full items-center justify-center px-5" style={{ background: "#F4E1C6" }}>
+        <Image
+          src="/stars.png"
+          alt=""
+          width={70}
+          height={70}
+          className="star-float pointer-events-none absolute left-4 top-6 h-10 w-10 opacity-60 sm:left-8 sm:top-10 sm:h-12 sm:w-12"
+          aria-hidden="true"
+        />
+        <Image
+          src="/stars.png"
+          alt=""
+          width={70}
+          height={70}
+          className="star-float star-float-delay-1 pointer-events-none absolute right-4 top-8 h-9 w-9 opacity-60 sm:right-10 sm:top-12 sm:h-11 sm:w-11"
+          aria-hidden="true"
+        />
+        <Image
+          src="/stars.png"
+          alt=""
+          width={70}
+          height={70}
+          className="star-float star-float-delay-2 pointer-events-none absolute bottom-10 left-6 hidden h-10 w-10 opacity-60 sm:block sm:bottom-12 sm:left-12 sm:h-12 sm:w-12"
+          aria-hidden="true"
+        />
 
-        <div className="relative">
-          <Image
-            src="/stars.png"
-            alt=""
-            width={80}
-            height={80}
-            className="star-float pointer-events-none absolute -left-3 -top-4 h-10 w-10 opacity-60 sm:-left-6 sm:-top-6 sm:h-14 sm:w-14"
-            aria-hidden="true"
-          />
-          <Image
-            src="/stars.png"
-            alt=""
-            width={80}
-            height={80}
-            className="star-float star-float-delay-1 pointer-events-none absolute -right-3 -top-5 h-12 w-12 opacity-60 sm:-right-6 sm:-top-7 sm:h-16 sm:w-16"
-            aria-hidden="true"
-          />
-          <Image
-            src="/stars.png"
-            alt=""
-            width={80}
-            height={80}
-            className="star-float star-float-delay-2 pointer-events-none absolute -bottom-5 -right-2 hidden h-12 w-12 opacity-60 sm:block sm:-bottom-7 sm:-right-4 sm:h-16 sm:w-16"
-            aria-hidden="true"
-          />
-
-          <div
-            className="rounded-2xl p-6 shadow-sm"
-            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-          >
-            <h1 className="text-xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
-              Talebiniz alındı
-            </h1>
-            <p className="mt-3" style={{ color: "var(--text-muted)" }}>
-              Randevu talebiniz alınmıştır. Onay için sizinle iletişime geçilecektir.
-            </p>
+        <div
+          className="w-full max-w-md rounded-3xl p-7 text-center shadow-sm"
+          style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+        >
+          <h1 className="text-xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+            Talebiniz alındı 🐾
+          </h1>
+          <p className="mt-3" style={{ color: "var(--text-muted)" }}>
+            Randevu talebiniz alınmıştır. Onay için sizinle iletişime geçilecektir.
+          </p>
+          <div className="mt-6">
+            <Link
+              href="/"
+              className="inline-flex h-11 w-full items-center justify-center rounded-2xl px-5 text-sm font-medium text-white shadow-sm transition hover:brightness-95"
+              style={{ background: "var(--primary-strong)" }}
+            >
+              Ana sayfaya dön
+            </Link>
           </div>
         </div>
       </div>
@@ -206,24 +206,39 @@ export default function RandevuPage() {
             ) : null}
           </div>
 
-          {availableTimes.length === 0 && !loadingSlots ? (
+          {orderedSlots.length === 0 && !loadingSlots ? (
             <div className="mt-3 rounded-2xl p-4 text-sm" style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}>
               Bu tarih için uygun saat bulunamadı.
             </div>
           ) : (
             <div className="mt-3 grid grid-cols-3 gap-3">
-              {availableTimes.map((t) => {
+              {orderedSlots.map((s) => {
+                const t = s.time;
                 const selected = t === selectedTime;
+                const unavailable = s.is_available !== true;
                 return (
                   <button
-                    key={t}
+                    key={s.id}
                     type="button"
-                    onClick={() => setSelectedTime(t)}
+                    onClick={() => {
+                      if (unavailable) return;
+                      setSelectedTime(t);
+                    }}
+                    disabled={unavailable}
                     className="h-12 rounded-2xl px-3 text-sm font-medium shadow-sm transition"
                     style={
-                      selected
-                        ? { background: "var(--primary-strong)", color: "#fff", border: "1px solid var(--primary-strong)" }
-                        : { background: "var(--surface)", color: "var(--text)", border: "1px solid var(--border)" }
+                      unavailable
+                        ? {
+                            background: "var(--surface-2)",
+                            color: "var(--text-muted)",
+                            border: "1px solid var(--border)",
+                            textDecoration: "line-through",
+                            opacity: 0.65,
+                            cursor: "not-allowed",
+                          }
+                        : selected
+                          ? { background: "var(--primary-strong)", color: "#fff", border: "1px solid var(--primary-strong)" }
+                          : { background: "var(--surface)", color: "var(--text)", border: "1px solid var(--border)" }
                     }
                   >
                     {t}

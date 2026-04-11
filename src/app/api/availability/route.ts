@@ -5,6 +5,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const date = searchParams.get("date");
+    const includeUnavailable = searchParams.get("include_unavailable") === "1";
 
     console.log("[api/availability] requested date:", date);
 
@@ -13,12 +14,14 @@ export async function GET(req: NextRequest) {
     }
 
     const supabase = supabaseServiceServer();
-    const { data, error } = await supabase
+    const q = supabase
       .from("availability")
       .select("id,date,time,is_available")
-      .eq("date", date)
-      .eq("is_available", true)
-      .order("time", { ascending: true });
+      .eq("date", date);
+
+    const { data, error } = includeUnavailable
+      ? await q.order("time", { ascending: true })
+      : await q.eq("is_available", true).order("time", { ascending: true });
 
     if (error) {
       console.log("[api/availability] supabase error:", error.message);
