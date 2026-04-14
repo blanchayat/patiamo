@@ -24,6 +24,8 @@ export default function RandevuPage() {
   const [duration, setDuration] = useState<"30 dk" | "60 dk" | "">("");
   const [area, setArea] = useState<"Nişantaşı" | "Bebek" | "Emirgan" | "">("");
   const [note, setNote] = useState("");
+  const [allergyStatus, setAllergyStatus] = useState<"none" | "has">("none");
+  const [allergyNote, setAllergyNote] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string>("");
@@ -66,6 +68,10 @@ export default function RandevuPage() {
     setError("");
 
     try {
+      if (allergyStatus === "has" && !allergyNote.trim()) {
+        throw new Error("Alerji bilgisini yazınız");
+      }
+
       const res = await fetch("/api/bookings", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -77,6 +83,8 @@ export default function RandevuPage() {
           duration,
           area,
           note,
+          allergy_status: allergyStatus,
+          allergy_note: allergyStatus === "has" ? allergyNote : "",
         }),
       });
 
@@ -393,6 +401,52 @@ export default function RandevuPage() {
                   rows={4}
                   placeholder="Varsa özel notunuz"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm" style={{ color: "var(--text-muted)" }}>
+                  Alerji durumu
+                </label>
+                <div className="mt-2 grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAllergyStatus("none");
+                      setAllergyNote("");
+                    }}
+                    className="h-12 rounded-2xl text-sm font-medium shadow-sm transition"
+                    style={
+                      allergyStatus === "none"
+                        ? { background: "var(--primary-strong)", color: "#fff", border: "1px solid var(--primary-strong)" }
+                        : { background: "var(--surface)", color: "var(--text)", border: "1px solid var(--border)" }
+                    }
+                  >
+                    Alerji yok
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAllergyStatus("has")}
+                    className="h-12 rounded-2xl text-sm font-medium shadow-sm transition"
+                    style={
+                      allergyStatus === "has"
+                        ? { background: "var(--primary-strong)", color: "#fff", border: "1px solid var(--primary-strong)" }
+                        : { background: "var(--surface)", color: "var(--text)", border: "1px solid var(--border)" }
+                    }
+                  >
+                    Var
+                  </button>
+                </div>
+
+                {allergyStatus === "has" ? (
+                  <textarea
+                    className="mt-3 w-full resize-none rounded-2xl px-4 py-3 outline-none"
+                    style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
+                    value={allergyNote}
+                    onChange={(e) => setAllergyNote(e.target.value)}
+                    rows={3}
+                    placeholder="Varsa alerji bilgisini yazınız"
+                  />
+                ) : null}
               </div>
             </div>
 

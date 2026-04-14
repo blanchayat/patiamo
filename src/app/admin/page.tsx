@@ -13,6 +13,8 @@ type Booking = {
   duration: string;
   area: string;
   note: string | null;
+  allergy_status?: string | null;
+  allergy_note?: string | null;
   status: "pending" | "confirmed" | "cancelled";
   created_at: string;
 };
@@ -136,6 +138,31 @@ export default function AdminPage() {
       setError(e instanceof Error ? e.message : "Bir hata oluştu, lütfen tekrar deneyin.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function deleteBooking(id: string) {
+    setError("");
+    if (!token.trim()) {
+      setError("Admin token girmen gerekiyor.");
+      return;
+    }
+    const ok = window.confirm("Bu talebi silmek istiyor musunuz?");
+    if (!ok) return;
+
+    try {
+      const res = await fetch(`/api/admin/bookings/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        headers,
+      });
+      const json = await safeReadJson(res);
+      if (!res.ok) {
+        setError(json?.error ?? "Silme işlemi başarısız.");
+        return;
+      }
+      await loadAll();
+    } catch {
+      setError("Bir hata oluştu, lütfen tekrar deneyin.");
     }
   }
 
@@ -501,14 +528,34 @@ export default function AdminPage() {
                         <div className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
                           {b.phone}
                         </div>
+                        <div className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
+                          {b.allergy_status === "has" ? `Alerji: ${b.allergy_note ?? "Var"}` : "Alerji: Yok"}
+                        </div>
                         {b.note ? (
                           <div className="mt-2 text-xs" style={{ color: "var(--text-muted)" }}>
                             Not: {b.note}
                           </div>
                         ) : null}
                       </div>
-                      <div className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
-                        {b.status}
+                      <div className="flex items-start gap-2">
+                        <div className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
+                          {b.status}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => deleteBooking(b.id)}
+                          className="h-8 w-8 rounded-2xl shadow-sm transition hover:brightness-95"
+                          style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text-muted)" }}
+                          aria-label="Sil"
+                          title="Sil"
+                        >
+                          <svg viewBox="0 0 24 24" className="mx-auto h-4 w-4" aria-hidden="true">
+                            <path
+                              fill="currentColor"
+                              d="M9 3a1 1 0 0 0-1 1v1H5a1 1 0 1 0 0 2h1v13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7h1a1 1 0 1 0 0-2h-3V4a1 1 0 0 0-1-1H9Zm1 2h4v1h-4V5Zm-1 5a1 1 0 0 1 1 1v8a1 1 0 1 1-2 0v-8a1 1 0 0 1 1-1Zm6 0a1 1 0 0 1 1 1v8a1 1 0 1 1-2 0v-8a1 1 0 0 1 1-1Z"
+                            />
+                          </svg>
+                        </button>
                       </div>
                     </div>
 

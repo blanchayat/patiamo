@@ -20,6 +20,8 @@ create table if not exists public.bookings (
   duration text not null,
   area text not null,
   note text,
+  allergy_status text,
+  allergy_note text,
   status text not null default 'pending',
   created_at timestamptz not null default now()
 );
@@ -47,6 +49,10 @@ alter table public.bookings
 alter table public.bookings
   add constraint bookings_area_check
   check (area in ('Nişantaşı','Bebek','Emirgan'));
+
+alter table public.bookings
+  add constraint bookings_allergy_status_check
+  check (allergy_status is null or allergy_status in ('none','has'));
 
 -- RLS
 alter table public.availability enable row level security;

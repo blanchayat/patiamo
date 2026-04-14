@@ -17,6 +17,9 @@ export async function POST(req: NextRequest) {
   const duration = String(body.duration ?? "").trim();
   const area = String(body.area ?? "").trim();
   const note = String(body.note ?? "").trim();
+  const allergyStatusRaw = String(body.allergy_status ?? "none").trim();
+  const allergyStatus = allergyStatusRaw === "has" ? "has" : "none";
+  const allergyNote = String(body.allergy_note ?? "").trim();
 
   if (!name) {
     return NextResponse.json({ error: "Ad Soyad zorunludur" }, { status: 400 });
@@ -40,6 +43,10 @@ export async function POST(req: NextRequest) {
 
   if (area !== "Nişantaşı" && area !== "Bebek" && area !== "Emirgan") {
     return NextResponse.json({ error: "Bölge seçiniz" }, { status: 400 });
+  }
+
+  if (allergyStatus === "has" && !allergyNote) {
+    return NextResponse.json({ error: "Alerji bilgisini yazınız" }, { status: 400 });
   }
 
   // Date frontend'den zaten YYYY-MM-DD formatında geliyor.
@@ -110,6 +117,8 @@ export async function POST(req: NextRequest) {
     duration,
     area,
     note: note || null,
+    allergy_status: allergyStatus,
+    allergy_note: allergyStatus === "has" ? allergyNote : null,
     status: "pending",
   });
 
