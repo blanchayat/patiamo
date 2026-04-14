@@ -44,6 +44,10 @@ function toBooleanAvailability(v: unknown): boolean {
 
 export default function AdminPage() {
   const [token, setToken] = useState("");
+  const [isAuthed, setIsAuthed] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [loginValue, setLoginValue] = useState("");
+  const [loginError, setLoginError] = useState("");
   const [date, setDate] = useState<string>(new Date().toISOString().slice(0, 10));
   const [time, setTime] = useState("09:00");
   const [isAvailable, setIsAvailable] = useState(true);
@@ -53,13 +57,42 @@ export default function AdminPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const headers = useMemo(() => ({ "x-admin-token": token }), [token]);
+  const headers = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
+
+  async function verifyToken(t: string): Promise<boolean> {
+    const v = t.trim();
+    if (!v) return false;
+    try {
+      const res = await fetch(`/api/admin/bookings`, {
+        headers: { Authorization: `Bearer ${v}` },
+        cache: "no-store",
+      });
+      if (res.status === 401) return false;
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
 
   useEffect(() => {
     try {
       const stored = localStorage.getItem("admin_token");
       if (stored && stored.trim()) {
-        setToken(stored.trim());
+        const v = stored.trim();
+        setToken(v);
+        verifyToken(v).then((ok) => {
+          if (ok) {
+            setIsAuthed(true);
+          } else {
+            setIsAuthed(false);
+            setToken("");
+            try {
+              localStorage.removeItem("admin_token");
+            } catch {
+              // ignore
+            }
+          }
+        });
       }
     } catch {
       // ignore
@@ -69,12 +102,12 @@ export default function AdminPage() {
   useEffect(() => {
     try {
       const v = token.trim();
-      if (v) localStorage.setItem("admin_token", v);
+      if (isAuthed && v) localStorage.setItem("admin_token", v);
       else localStorage.removeItem("admin_token");
     } catch {
       // ignore
     }
-  }, [token]);
+  }, [token, isAuthed]);
 
   async function loadAll() {
     setLoading(true);
@@ -107,10 +140,58 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
-    if (!token) return;
+    if (!isAuthed) return;
     loadAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, date]);
+  }, [isAuthed, token, date]);
+
+  useEffect(() => {
+    if (!loginOpen) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setLoginOpen(false);
+        setLoginError("");
+        setLoginValue("");
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [loginOpen]);
+
+  async function submitLogin() {
+    const v = loginValue.trim();
+    setLoginError("");
+    if (!v) return;
+
+    setLoading(true);
+    setError("");
+    try {
+      const ok = await verifyToken(v);
+      if (!ok) {
+        setIsAuthed(false);
+        setToken("");
+        try {
+          localStorage.removeItem("admin_token");
+        } catch {
+          // ignore
+        }
+        setLoginError("Geçersiz kod");
+        setLoginValue("");
+        setSlots([]);
+        setBookings([]);
+        return;
+      }
+
+      setToken(v);
+      setIsAuthed(true);
+      setLoginOpen(false);
+      setLoginValue("");
+      setLoginError("");
+      await loadAll();
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function addSlot() {
     setError("");
@@ -255,9 +336,18 @@ export default function AdminPage() {
         <Link href="/" className="text-sm transition hover:brightness-75" style={{ color: "var(--text-muted)" }}>
           ← Ana sayfa
         </Link>
-        <div className="text-sm font-medium tracking-[0.16em]" style={{ color: "var(--text)" }}>
-          PATİAMO • Admin
-        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setLoginOpen(true);
+            setLoginError("");
+            setLoginValue("");
+          }}
+          className="h-9 rounded-2xl px-3 text-xs font-medium shadow-sm transition hover:brightness-95"
+          style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text)" }}
+        >
+          Dog Walking
+        </button>
       </header>
 
       <h1 className="text-2xl font-semibold tracking-tight" style={{ color: "var(--text)" }}>
@@ -267,26 +357,7 @@ export default function AdminPage() {
         Uygun saatleri yönetin ve talepleri onaylayın/iptal edin.
       </p>
 
-      <section
-        className="mt-6 rounded-2xl p-5 shadow-sm"
-        style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-      >
-        <label className="block text-sm font-medium" style={{ color: "var(--text)" }}>
-          Admin Token
-        </label>
-        <input
-          className="mt-2 w-full rounded-2xl px-4 py-3 outline-none"
-          style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
-          placeholder="ADMIN_TOKEN"
-        />
-        <div className="mt-3 text-xs" style={{ color: "var(--text-muted)" }}>
-          Token sadece bu tarayıcıda tutulur.
-        </div>
-      </section>
-
-      {token ? (
+      {isAuthed ? (
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
           <section
             className="rounded-2xl p-5 shadow-sm"
@@ -467,11 +538,84 @@ export default function AdminPage() {
             </div>
           </section>
         </div>
-      ) : null}
+      ) : (
+        <div
+          className="mt-10 rounded-2xl p-8 text-center"
+          style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-muted)" }}
+        >
+          <div className="text-sm"> </div>
+        </div>
+      )}
 
       {error ? (
         <div className="mt-6 rounded-2xl p-4 text-sm" style={{ background: "rgba(217, 154, 130, 0.18)", color: "var(--text)" }}>
           {error}
+        </div>
+      ) : null}
+
+      {loginOpen ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-5"
+          style={{ background: "rgba(20, 16, 12, 0.35)" }}
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) {
+              setLoginOpen(false);
+              setLoginError("");
+              setLoginValue("");
+            }
+          }}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl p-5 shadow-sm"
+            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
+                Yönetici girişi
+              </div>
+              <button
+                type="button"
+                className="h-9 rounded-2xl px-3 text-xs font-medium transition hover:brightness-95"
+                style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text)" }}
+                onClick={() => {
+                  setLoginOpen(false);
+                  setLoginError("");
+                  setLoginValue("");
+                }}
+              >
+                Kapat
+              </button>
+            </div>
+
+            <input
+              type="password"
+              className="mt-4 w-full rounded-2xl px-4 py-3 outline-none"
+              style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
+              value={loginValue}
+              onChange={(e) => {
+                setLoginValue(e.target.value);
+                setLoginError("");
+              }}
+              placeholder="Yönetici kodu"
+              autoFocus
+            />
+
+            {loginError ? (
+              <div className="mt-2 text-xs" style={{ color: "var(--text-muted)" }}>
+                {loginError}
+              </div>
+            ) : null}
+
+            <button
+              type="button"
+              onClick={submitLogin}
+              disabled={loading}
+              className="mt-4 h-11 w-full rounded-2xl text-sm font-medium text-white shadow-sm transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"
+              style={{ background: "var(--primary-strong)" }}
+            >
+              Giriş Yap
+            </button>
+          </div>
         </div>
       ) : null}
     </div>

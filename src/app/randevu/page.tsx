@@ -144,7 +144,7 @@ export default function RandevuPage() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-1 flex-col px-5 py-10" style={{ background: "var(--background)" }}>
+    <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-5 py-10" style={{ background: "var(--background)" }}>
       <header className="mb-8 flex items-center justify-between">
         <Link href="/" className="text-sm transition hover:brightness-75" style={{ color: "var(--text-muted)" }}>
           ← Ana sayfa
@@ -179,199 +179,291 @@ export default function RandevuPage() {
         </p>
       </div>
 
-      <section
-        className="mt-8 rounded-2xl p-5 shadow-sm"
-        style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-      >
-        <label className="block text-sm font-medium" style={{ color: "var(--text)" }}>
-          Tarih
-        </label>
-        <input
-          type="date"
-          className="mt-2 w-full rounded-2xl px-4 py-3 outline-none"
-          style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
-        />
+      <div className="mt-8 grid gap-6 lg:grid-cols-2">
+        <section
+          className="rounded-2xl p-5 shadow-sm"
+          style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+        >
+          <h2 className="text-lg font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+            Tek seferlik yürüyüş
+          </h2>
 
-        <div className="mt-6">
-          <div className="flex items-center justify-between">
-            <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
-              Uygun Saatler
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div
+              className="rounded-2xl p-4 shadow-sm"
+              style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
+                  30 dakika
+                </div>
+                <span
+                  className="rounded-full px-2.5 py-1 text-[10px] font-semibold"
+                  style={{ background: "rgba(120, 78, 45, 0.14)", color: "rgba(90, 55, 28, 0.95)", border: "1px solid rgba(120, 78, 45, 0.18)" }}
+                >
+                  Tanışma indirimi
+                </span>
+              </div>
+              <div className="mt-3 flex items-end gap-2">
+                <div className="text-2xl font-semibold" style={{ color: "var(--text)" }}>
+                  600 TL
+                </div>
+                <div className="pb-0.5 text-xs line-through" style={{ color: "var(--text-muted)" }}>
+                  1.000 TL
+                </div>
+              </div>
             </div>
-            {loadingSlots ? (
-              <div className="text-xs" style={{ color: "var(--text-muted)" }}>
-                Yükleniyor…
+
+            <div
+              className="rounded-2xl p-4 shadow-sm"
+              style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
+                  60 dakika
+                </div>
+                <span
+                  className="rounded-full px-2.5 py-1 text-[10px] font-semibold"
+                  style={{ background: "rgba(120, 78, 45, 0.14)", color: "rgba(90, 55, 28, 0.95)", border: "1px solid rgba(120, 78, 45, 0.18)" }}
+                >
+                  Tanışma indirimi
+                </span>
+              </div>
+              <div className="mt-3 flex items-end gap-2">
+                <div className="text-2xl font-semibold" style={{ color: "var(--text)" }}>
+                  1.000 TL
+                </div>
+                <div className="pb-0.5 text-xs line-through" style={{ color: "var(--text-muted)" }}>
+                  2.000 TL
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="mt-4 flex flex-col gap-4 rounded-2xl p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+            style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
+          >
+            <div>
+              <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
+                Aylık paket
+              </div>
+              <div className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
+                Sabit walker · Aylık rapor özeti · Sınırlı kontenjan
+              </div>
+            </div>
+            <Link
+              href="/"
+              className="inline-flex h-11 items-center justify-center rounded-2xl px-5 text-sm font-medium text-white shadow-sm transition hover:brightness-95"
+              style={{ background: "var(--primary-strong)" }}
+            >
+              İletişime geçin
+            </Link>
+          </div>
+        </section>
+
+        <div className="space-y-6">
+          <section
+            className="rounded-2xl p-5 shadow-sm"
+            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+          >
+            <label className="block text-sm font-medium" style={{ color: "var(--text)" }}>
+              Tarih
+            </label>
+            <input
+              type="date"
+              className="mt-2 w-full rounded-2xl px-4 py-3 outline-none"
+              style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+            />
+
+            <div className="mt-6">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
+                  Uygun Saatler
+                </div>
+                {loadingSlots ? (
+                  <div className="text-xs" style={{ color: "var(--text-muted)" }}>
+                    Yükleniyor…
+                  </div>
+                ) : null}
+              </div>
+
+              {orderedSlots.length === 0 && !loadingSlots ? (
+                <div
+                  className="mt-3 rounded-2xl p-4 text-sm"
+                  style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
+                >
+                  Bu tarih için uygun saat bulunamadı.
+                </div>
+              ) : (
+                <div className="mt-3 grid grid-cols-3 gap-3">
+                  {orderedSlots.map((s) => {
+                    const t = s.time;
+                    const selected = t === selectedTime;
+                    const unavailable = s.is_available !== true;
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => {
+                          if (unavailable) return;
+                          setSelectedTime(t);
+                        }}
+                        disabled={unavailable}
+                        className="relative h-12 rounded-2xl px-3 text-sm font-medium shadow-sm transition"
+                        style={
+                          unavailable
+                            ? {
+                                background: "var(--surface-2)",
+                                color: "var(--text-muted)",
+                                border: "1px solid var(--border)",
+                                textDecoration: "line-through",
+                                opacity: 0.65,
+                                cursor: "not-allowed",
+                              }
+                            : selected
+                              ? { background: "var(--primary-strong)", color: "#fff", border: "1px solid var(--primary-strong)" }
+                              : { background: "var(--surface)", color: "var(--text)", border: "1px solid var(--border)" }
+                        }
+                      >
+                        {t}
+                        {unavailable ? (
+                          <span
+                            className="pointer-events-none absolute right-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                            style={{ background: "rgba(200, 90, 90, 0.16)", color: "rgba(120, 45, 45, 0.95)", border: "1px solid rgba(200, 90, 90, 0.22)" }}
+                          >
+                            Kontenjan doldu
+                          </span>
+                        ) : null}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </section>
+
+          <section
+            className="rounded-2xl p-5 shadow-sm"
+            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+          >
+            <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
+              Bilgiler
+            </div>
+
+            <div className="mt-4 grid gap-4">
+              <div>
+                <label className="block text-sm" style={{ color: "var(--text-muted)" }}>
+                  Ad Soyad
+                </label>
+                <input
+                  className="mt-2 w-full rounded-2xl px-4 py-3 outline-none"
+                  style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Adınız Soyadınız"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm" style={{ color: "var(--text-muted)" }}>
+                  Telefon Numarası
+                </label>
+                <input
+                  className="mt-2 w-full rounded-2xl px-4 py-3 outline-none"
+                  style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  inputMode="tel"
+                  placeholder="05XXXXXXXXX"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm" style={{ color: "var(--text-muted)" }}>
+                  Yürüyüş süresi
+                </label>
+                <div className="mt-2 grid grid-cols-2 gap-3">
+                  {(["30 dk", "60 dk"] as const).map((d) => {
+                    const selected = duration === d;
+                    return (
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() => setDuration(d)}
+                        className="h-12 rounded-2xl text-sm font-medium shadow-sm transition"
+                        style={
+                          selected
+                            ? { background: "var(--primary-strong)", color: "#fff", border: "1px solid var(--primary-strong)" }
+                            : { background: "var(--surface)", color: "var(--text)", border: "1px solid var(--border)" }
+                        }
+                      >
+                        {d}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm" style={{ color: "var(--text-muted)" }}>
+                  Bölge
+                </label>
+                <select
+                  className="mt-2 w-full rounded-2xl bg-transparent px-4 py-3 outline-none"
+                  style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
+                  value={area}
+                  onChange={(e) => setArea(e.target.value as any)}
+                >
+                  <option value="">Seçiniz</option>
+                  <option value="Nişantaşı">Nişantaşı</option>
+                  <option value="Bebek">Bebek</option>
+                  <option value="Emirgan">Emirgan</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm" style={{ color: "var(--text-muted)" }}>
+                  Ek not
+                </label>
+                <textarea
+                  className="mt-2 w-full resize-none rounded-2xl px-4 py-3 outline-none"
+                  style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  rows={4}
+                  placeholder="Varsa özel notunuz"
+                />
+              </div>
+            </div>
+
+            {error ? (
+              <div
+                className="mt-4 rounded-2xl p-4 text-sm"
+                style={{ background: "rgba(217, 154, 130, 0.18)", color: "var(--text)" }}
+              >
+                {error}
               </div>
             ) : null}
-          </div>
 
-          {orderedSlots.length === 0 && !loadingSlots ? (
-            <div className="mt-3 rounded-2xl p-4 text-sm" style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}>
-              Bu tarih için uygun saat bulunamadı.
-            </div>
-          ) : (
-            <div className="mt-3 grid grid-cols-3 gap-3">
-              {orderedSlots.map((s) => {
-                const t = s.time;
-                const selected = t === selectedTime;
-                const unavailable = s.is_available !== true;
-                return (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => {
-                      if (unavailable) return;
-                      setSelectedTime(t);
-                    }}
-                    disabled={unavailable}
-                    className="relative h-12 rounded-2xl px-3 text-sm font-medium shadow-sm transition"
-                    style={
-                      unavailable
-                        ? {
-                            background: "var(--surface-2)",
-                            color: "var(--text-muted)",
-                            border: "1px solid var(--border)",
-                            textDecoration: "line-through",
-                            opacity: 0.65,
-                            cursor: "not-allowed",
-                          }
-                        : selected
-                          ? { background: "var(--primary-strong)", color: "#fff", border: "1px solid var(--primary-strong)" }
-                          : { background: "var(--surface)", color: "var(--text)", border: "1px solid var(--border)" }
-                    }
-                  >
-                    {t}
-                    {unavailable ? (
-                      <span
-                        className="pointer-events-none absolute right-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                        style={{ background: "rgba(61,32,9,0.08)", color: "var(--text-muted)", border: "1px solid var(--border)" }}
-                      >
-                        Dolu
-                      </span>
-                    ) : null}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </section>
-
-      <section
-        className="mt-6 rounded-2xl p-5 shadow-sm"
-        style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-      >
-        <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
-          Bilgiler
-        </div>
-
-        <div className="mt-4 grid gap-4">
-          <div>
-            <label className="block text-sm" style={{ color: "var(--text-muted)" }}>
-              Ad Soyad
-            </label>
-            <input
-              className="mt-2 w-full rounded-2xl px-4 py-3 outline-none"
-              style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Adınız Soyadınız"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm" style={{ color: "var(--text-muted)" }}>
-              Telefon Numarası
-            </label>
-            <input
-              className="mt-2 w-full rounded-2xl px-4 py-3 outline-none"
-              style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              inputMode="tel"
-              placeholder="05XXXXXXXXX"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm" style={{ color: "var(--text-muted)" }}>
-              Yürüyüş süresi
-            </label>
-            <div className="mt-2 grid grid-cols-2 gap-3">
-              {(["30 dk", "60 dk"] as const).map((d) => {
-                const selected = duration === d;
-                return (
-                  <button
-                    key={d}
-                    type="button"
-                    onClick={() => setDuration(d)}
-                    className="h-12 rounded-2xl text-sm font-medium shadow-sm transition"
-                    style={
-                      selected
-                        ? { background: "var(--primary-strong)", color: "#fff", border: "1px solid var(--primary-strong)" }
-                        : { background: "var(--surface)", color: "var(--text)", border: "1px solid var(--border)" }
-                    }
-                  >
-                    {d}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm" style={{ color: "var(--text-muted)" }}>
-              Bölge
-            </label>
-            <select
-              className="mt-2 w-full rounded-2xl bg-transparent px-4 py-3 outline-none"
-              style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
-              value={area}
-              onChange={(e) => setArea(e.target.value as any)}
+            <button
+              type="button"
+              disabled={submitting || !selectedTime}
+              onClick={submit}
+              className="mt-5 h-12 w-full rounded-2xl text-sm font-medium text-white shadow-sm transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
+              style={{ background: "var(--primary-strong)" }}
             >
-              <option value="">Seçiniz</option>
-              <option value="Nişantaşı">Nişantaşı</option>
-              <option value="Bebek">Bebek</option>
-              <option value="Emirgan">Emirgan</option>
-            </select>
-          </div>
+              {submitting ? "Gönderiliyor…" : "Randevu Talebi Gönder"}
+            </button>
 
-          <div>
-            <label className="block text-sm" style={{ color: "var(--text-muted)" }}>
-              Ek not
-            </label>
-            <textarea
-              className="mt-2 w-full resize-none rounded-2xl px-4 py-3 outline-none"
-              style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              rows={4}
-              placeholder="Varsa özel notunuz"
-            />
-          </div>
+            <div className="mt-3 text-xs" style={{ color: "var(--text-muted)" }}>
+              Seçili tarih/saat: {selectedDate} {selectedTime ? `• ${selectedTime}` : ""}
+            </div>
+          </section>
         </div>
-
-        {error ? (
-          <div className="mt-4 rounded-2xl p-4 text-sm" style={{ background: "rgba(217, 154, 130, 0.18)", color: "var(--text)" }}>
-            {error}
-          </div>
-        ) : null}
-
-        <button
-          type="button"
-          disabled={submitting || !selectedTime}
-          onClick={submit}
-          className="mt-5 h-12 w-full rounded-2xl text-sm font-medium text-white shadow-sm transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
-          style={{ background: "var(--primary-strong)" }}
-        >
-          {submitting ? "Gönderiliyor…" : "Randevu Talebi Gönder"}
-        </button>
-
-        <div className="mt-3 text-xs" style={{ color: "var(--text-muted)" }}>
-          Seçili tarih/saat: {selectedDate} {selectedTime ? `• ${selectedTime}` : ""}
-        </div>
-      </section>
+      </div>
     </div>
   );
 }

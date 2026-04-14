@@ -6,8 +6,17 @@ export function assertAdmin(req: NextRequest) {
     return { ok: false as const, error: "ADMIN_TOKEN yapılandırılmamış" };
   }
 
-  const token = req.headers.get("x-admin-token");
-  if (!token || token !== expected) {
+  const authHeader = req.headers.get("authorization") ?? "";
+  const parts = authHeader.split(" ").filter(Boolean);
+  const scheme = parts[0];
+  const token = parts[1];
+  const extra = parts.length > 2;
+
+  if (!scheme || scheme.toLowerCase() !== "bearer" || !token || extra) {
+    return { ok: false as const, error: "Yetkisiz işlem" };
+  }
+
+  if (token !== expected) {
     return { ok: false as const, error: "Yetkisiz işlem" };
   }
 
