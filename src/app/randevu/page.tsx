@@ -355,7 +355,7 @@ export default function RandevuPage() {
                                 : { background: "rgba(200, 90, 90, 0.16)", color: "rgba(120, 45, 45, 0.95)", border: "1px solid rgba(200, 90, 90, 0.22)" }
                             }
                           >
-                            {isPastTime ? "Geçti" : "Kontenjan doldu"}
+                            Dolu
                           </span>
                         ) : null}
                       </button>
