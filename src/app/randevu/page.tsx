@@ -13,6 +13,42 @@ function formatDateISO(d: Date) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function getIstanbulNowParts() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Istanbul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+
+  const map: Record<string, string> = {};
+  for (const p of parts) {
+    if (p.type !== "literal") map[p.type] = p.value;
+  }
+
+  const yyyy = map.year ?? "";
+  const mm = map.month ?? "";
+  const dd = map.day ?? "";
+  const hh = map.hour ?? "00";
+  const mi = map.minute ?? "00";
+  const dateISO = `${yyyy}-${mm}-${dd}`;
+  const minutes = Number(hh) * 60 + Number(mi);
+
+  return { dateISO, minutes };
+}
+
+function parseTimeToMinutes(t: string) {
+  const base = String(t ?? "").trim().slice(0, 5);
+  const [h, m] = base.split(":");
+  const hh = Number(h);
+  const mm = Number(m);
+  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return NaN;
+  return hh * 60 + mm;
+}
+
 export default function RandevuPage() {
   const [selectedDate, setSelectedDate] = useState<string>(formatDateISO(new Date()));
   const [slots, setSlots] = useState<Slot[]>([]);
@@ -32,6 +68,11 @@ export default function RandevuPage() {
   const [success, setSuccess] = useState(false);
 
   const orderedSlots = useMemo(() => slots, [slots]);
+
+  const istanbulNow = useMemo(() => getIstanbulNowParts(), []);
+  const todayISO = istanbulNow.dateISO;
+  const isPastDate = selectedDate < todayISO;
+  const isToday = selectedDate === todayISO;
 
   useEffect(() => {
     let cancelled = false;
@@ -62,6 +103,10 @@ export default function RandevuPage() {
       cancelled = true;
     };
   }, [selectedDate]);
+
+  useEffect(() => {
+    if (isPastDate) setSelectedTime("");
+  }, [isPastDate]);
 
   async function submit() {
     setSubmitting(true);
@@ -261,12 +306,20 @@ export default function RandevuPage() {
                 >
                   Bu tarih için uygun saat bulunamadı.
                 </div>
+              ) : isPastDate ? (
+                <div
+                  className="mt-3 rounded-2xl p-4 text-sm"
+                  style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
+                >
+                  Bu tarih için uygun saat bulunamadı.
+                </div>
               ) : (
                 <div className="mt-3 grid grid-cols-3 gap-3">
                   {orderedSlots.map((s) => {
                     const t = s.time;
                     const selected = t === selectedTime;
-                    const unavailable = s.is_available !== true;
+                    const isPastTime = isToday ? parseTimeToMinutes(t) < istanbulNow.minutes : false;
+                    const unavailable = s.is_available !== true || isPastTime;
                     return (
                       <button
                         key={s.id}
@@ -296,9 +349,13 @@ export default function RandevuPage() {
                         {unavailable ? (
                           <span
                             className="pointer-events-none absolute right-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                            style={{ background: "rgba(200, 90, 90, 0.16)", color: "rgba(120, 45, 45, 0.95)", border: "1px solid rgba(200, 90, 90, 0.22)" }}
+                            style={
+                              isPastTime
+                                ? { background: "rgba(120, 120, 120, 0.14)", color: "rgba(80, 80, 80, 0.95)", border: "1px solid rgba(120, 120, 120, 0.22)" }
+                                : { background: "rgba(200, 90, 90, 0.16)", color: "rgba(120, 45, 45, 0.95)", border: "1px solid rgba(200, 90, 90, 0.22)" }
+                            }
                           >
-                            Kontenjan doldu
+                            {isPastTime ? "Geçti" : "Kontenjan doldu"}
                           </span>
                         ) : null}
                       </button>
