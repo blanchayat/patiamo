@@ -34,13 +34,17 @@ create index if not exists availability_date_idx on public.availability(date);
 create index if not exists bookings_date_idx on public.bookings(date);
 create index if not exists bookings_status_idx on public.bookings(status);
 
+drop index if exists bookings_unique_active_slot;
 create unique index if not exists bookings_unique_active_slot
   on public.bookings(date, time)
-  where status in ('pending','confirmed');
+  where status in ('pending','confirmed','completed');
+
+alter table public.bookings
+  drop constraint if exists bookings_status_check;
 
 alter table public.bookings
   add constraint bookings_status_check
-  check (status in ('pending','confirmed','cancelled'));
+  check (status in ('pending','confirmed','completed','cancelled'));
 
 alter table public.bookings
   add constraint bookings_duration_check

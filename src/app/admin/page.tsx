@@ -15,7 +15,7 @@ type Booking = {
   note: string | null;
   allergy_status?: string | null;
   allergy_note?: string | null;
-  status: "pending" | "confirmed" | "cancelled";
+  status: "pending" | "confirmed" | "completed" | "cancelled";
   created_at: string;
 };
 
@@ -169,6 +169,32 @@ export default function AdminPage() {
       const json = await safeReadJson(res);
       if (!res.ok) {
         setError(json?.error ?? "Silme işlemi başarısız.");
+        return;
+      }
+      await loadAll();
+    } catch {
+      setError("Bir hata oluştu, lütfen tekrar deneyin.");
+    }
+  }
+
+  async function completeBooking(id: string) {
+    setError("");
+    if (!token.trim()) {
+      setError("Admin token girmen gerekiyor.");
+      return;
+    }
+    try {
+      const res = await fetch(`/api/admin/bookings/${encodeURIComponent(id)}/complete`, {
+        method: "POST",
+        headers,
+      });
+      const json = await safeReadJson(res);
+      if (!res.ok) {
+        setError(json?.error ?? "Tamamlama işlemi başarısız.");
+        return;
+      }
+      if (!json) {
+        setError("Sunucudan geçerli yanıt alınamadı.");
         return;
       }
       await loadAll();
@@ -512,7 +538,7 @@ export default function AdminPage() {
           >
             <div className="flex items-center justify-between">
               <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
-                Randevu Talepleri
+                Randevular
               </div>
               <button
                 type="button"
@@ -524,13 +550,18 @@ export default function AdminPage() {
               </button>
             </div>
 
-            <div className="mt-4 space-y-3">
-              {bookings.length === 0 ? (
-                <div className="rounded-2xl p-4 text-sm" style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-muted)" }}>
-                  Henüz talep yok.
-                </div>
-              ) : (
-                bookings.map((b) => (
+            {(() => {
+              const pending = bookings.filter((b) => b.status === "pending");
+              const confirmed = bookings.filter((b) => b.status === "confirmed");
+              const completed = bookings.filter((b) => b.status === "completed");
+
+              const renderCard = (b: Booking, variant: "pending" | "confirmed" | "completed") => {
+                const showConfirm = variant === "pending";
+                const showComplete = variant === "confirmed";
+                const showCancel = variant !== "completed";
+                const completedBadge = variant === "completed";
+
+                return (
                   <div key={b.id} className="rounded-2xl p-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -553,9 +584,18 @@ export default function AdminPage() {
                         ) : null}
                       </div>
                       <div className="flex items-start gap-2">
-                        <div className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
-                          {b.status}
-                        </div>
+                        {completedBadge ? (
+                          <div
+                            className="rounded-2xl px-3 py-1 text-xs font-medium"
+                            style={{ background: "rgba(63, 107, 86, 0.12)", border: "1px solid rgba(63, 107, 86, 0.22)", color: "var(--text)" }}
+                          >
+                            Tamamlandı
+                          </div>
+                        ) : (
+                          <div className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
+                            {b.status}
+                          </div>
+                        )}
                         <button
                           type="button"
                           onClick={() => deleteBooking(b.id)}
@@ -575,29 +615,101 @@ export default function AdminPage() {
                     </div>
 
                     <div className="mt-3 flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => confirmBooking(b.id)}
-                        disabled={b.status === "confirmed"}
-                        className="h-9 flex-1 rounded-2xl px-3 text-xs font-medium text-white shadow-sm transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
-                        style={{ background: "var(--primary-strong)" }}
-                      >
-                        Onayla
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => cancelBooking(b.id)}
-                        disabled={b.status === "cancelled"}
-                        className="h-9 flex-1 rounded-2xl px-3 text-xs font-medium shadow-sm transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
-                        style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text)" }}
-                      >
-                        İptal
-                      </button>
+                      {showConfirm ? (
+                        <button
+                          type="button"
+                          onClick={() => confirmBooking(b.id)}
+                          className="h-9 flex-1 rounded-2xl px-3 text-xs font-medium text-white shadow-sm transition hover:brightness-95"
+                          style={{ background: "var(--primary-strong)" }}
+                        >
+                          Onayla
+                        </button>
+                      ) : null}
+
+                      {showComplete ? (
+                        <button
+                          type="button"
+                          onClick={() => completeBooking(b.id)}
+                          className="h-9 flex-1 rounded-2xl px-3 text-xs font-medium shadow-sm transition hover:brightness-95"
+                          style={{ background: "rgba(63, 107, 86, 0.12)", border: "1px solid rgba(63, 107, 86, 0.25)", color: "var(--text)" }}
+                        >
+                          Tamamlandı
+                        </button>
+                      ) : null}
+
+                      {showCancel ? (
+                        <button
+                          type="button"
+                          onClick={() => cancelBooking(b.id)}
+                          className="h-9 flex-1 rounded-2xl px-3 text-xs font-medium shadow-sm transition hover:brightness-95"
+                          style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text)" }}
+                        >
+                          İptal
+                        </button>
+                      ) : null}
                     </div>
                   </div>
-                ))
-              )}
-            </div>
+                );
+              };
+
+              return (
+                <div className="mt-4 space-y-6">
+                  <div>
+                    <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
+                      Bekleyen Talepler
+                    </div>
+                    <div className="mt-3 space-y-3">
+                      {pending.length === 0 ? (
+                        <div
+                          className="rounded-2xl p-4 text-sm"
+                          style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-muted)" }}
+                        >
+                          Bekleyen talep yok.
+                        </div>
+                      ) : (
+                        pending.map((b) => renderCard(b, "pending"))
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
+                      Onaylanan Randevular
+                    </div>
+                    <div className="mt-3 space-y-3">
+                      {confirmed.length === 0 ? (
+                        <div
+                          className="rounded-2xl p-4 text-sm"
+                          style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-muted)" }}
+                        >
+                          Onaylanmış randevu yok.
+                        </div>
+                      ) : (
+                        confirmed.map((b) => renderCard(b, "confirmed"))
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
+                      Tamamlanan Randevular
+                    </div>
+                    <div className="mt-3 space-y-3">
+                      {completed.length === 0 ? (
+                        <div
+                          className="rounded-2xl p-4 text-sm"
+                          style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-muted)" }}
+                        >
+                          Tamamlanan randevu yok.
+                        </div>
+                      ) : (
+                        completed.map((b) => renderCard(b, "completed"))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </section>
         </div>
       ) : (

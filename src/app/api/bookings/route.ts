@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
     .select("id,status")
     .eq("date", normalizedDate)
     .in("time", [normalizedTime, normalizedTimeWithSeconds])
-    .in("status", ["pending", "confirmed"])
+    .in("status", ["pending", "confirmed", "completed"])
     .maybeSingle();
 
   if (existingBookingErr) {
