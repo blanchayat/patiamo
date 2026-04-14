@@ -147,11 +147,11 @@ export default function AdminPage() {
       setError("Admin token girmen gerekiyor.");
       return;
     }
-    const ok = window.confirm("Bu talebi silmek istiyor musunuz?");
+    const ok = window.confirm("Silmek istediğinize emin misiniz?");
     if (!ok) return;
 
     try {
-      const res = await fetch(`/api/admin/bookings/${encodeURIComponent(id)}`, {
+      const res = await fetch(`/api/admin/bookings?id=${encodeURIComponent(id)}`, {
         method: "DELETE",
         headers,
       });
@@ -529,7 +529,7 @@ export default function AdminPage() {
                           {b.phone}
                         </div>
                         <div className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
-                          {b.allergy_status === "has" ? `Alerji: ${b.allergy_note ?? "Var"}` : "Alerji: Yok"}
+                          {b.allergy_note && String(b.allergy_note).trim() ? `Alerji: ${String(b.allergy_note).trim()}` : "Alerji: Yok"}
                         </div>
                         {b.note ? (
                           <div className="mt-2 text-xs" style={{ color: "var(--text-muted)" }}>

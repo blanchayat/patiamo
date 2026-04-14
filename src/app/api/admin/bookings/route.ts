@@ -22,3 +22,27 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const auth = assertAdmin(req);
+    if (!auth.ok) return NextResponse.json({ error: auth.error ?? "Yetkisiz işlem" }, { status: 401 });
+
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id")?.trim();
+    if (!id) {
+      return NextResponse.json({ error: "id zorunludur" }, { status: 400 });
+    }
+
+    const supabase = supabaseServiceServer();
+    const { error } = await supabase.from("bookings").delete().eq("id", id);
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true });
+  } catch (e) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Bir hata oluştu, lütfen tekrar deneyin." },
+      { status: 500 },
+    );
+  }
+}

@@ -17,9 +17,11 @@ export async function POST(req: NextRequest) {
   const duration = String(body.duration ?? "").trim();
   const area = String(body.area ?? "").trim();
   const note = String(body.note ?? "").trim();
-  const allergyStatusRaw = String(body.allergy_status ?? "none").trim();
-  const allergyStatus = allergyStatusRaw === "has" ? "has" : "none";
-  const allergyNote = String(body.allergy_note ?? "").trim();
+  const allergyStatusRaw = String(body.allergy_status ?? "").trim();
+  const allergyNoteRaw = body.allergy_note;
+  const allergyNote = String(allergyNoteRaw ?? "").trim();
+  const hasAllergyNote = allergyNote.length > 0;
+  const allergyStatus = allergyStatusRaw === "has" || hasAllergyNote ? "has" : "none";
 
   if (!name) {
     return NextResponse.json({ error: "Ad Soyad zorunludur" }, { status: 400 });

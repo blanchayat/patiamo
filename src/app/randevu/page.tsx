@@ -83,8 +83,7 @@ export default function RandevuPage() {
           duration,
           area,
           note,
-          allergy_status: allergyStatus,
-          allergy_note: allergyStatus === "has" ? allergyNote : "",
+          allergy_note: allergyStatus === "has" ? allergyNote.trim() : null,
         }),
       });
 
@@ -407,34 +406,35 @@ export default function RandevuPage() {
                 <label className="block text-sm" style={{ color: "var(--text-muted)" }}>
                   Alerji durumu
                 </label>
-                <div className="mt-2 grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAllergyStatus("none");
-                      setAllergyNote("");
-                    }}
-                    className="h-12 rounded-2xl text-sm font-medium shadow-sm transition"
-                    style={
-                      allergyStatus === "none"
-                        ? { background: "var(--primary-strong)", color: "#fff", border: "1px solid var(--primary-strong)" }
-                        : { background: "var(--surface)", color: "var(--text)", border: "1px solid var(--border)" }
-                    }
+                <div className="mt-2 space-y-2">
+                  <label
+                    className="flex cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 text-sm"
+                    style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
                   >
+                    <input
+                      type="radio"
+                      name="allergy"
+                      checked={allergyStatus === "none"}
+                      onChange={() => {
+                        setAllergyStatus("none");
+                        setAllergyNote("");
+                      }}
+                    />
                     Alerji yok
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAllergyStatus("has")}
-                    className="h-12 rounded-2xl text-sm font-medium shadow-sm transition"
-                    style={
-                      allergyStatus === "has"
-                        ? { background: "var(--primary-strong)", color: "#fff", border: "1px solid var(--primary-strong)" }
-                        : { background: "var(--surface)", color: "var(--text)", border: "1px solid var(--border)" }
-                    }
+                  </label>
+
+                  <label
+                    className="flex cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 text-sm"
+                    style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
                   >
+                    <input
+                      type="radio"
+                      name="allergy"
+                      checked={allergyStatus === "has"}
+                      onChange={() => setAllergyStatus("has")}
+                    />
                     Var
-                  </button>
+                  </label>
                 </div>
 
                 {allergyStatus === "has" ? (
