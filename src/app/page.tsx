@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import Reveal from "./Reveal";
 import WalkRoutesSection from "./WalkRoutesSection";
+import FooterDogWalkingEntry from "./FooterDogWalkingEntry";
 
 function Paw({ className, style }: { className: string; style: CSSProperties }) {
   return (
@@ -293,13 +294,7 @@ export default function Home() {
             </div>
           </div>
           <div className="mt-3 text-center sm:text-left">
-            <Link
-              href="/admin"
-              className="text-xs transition hover:brightness-75"
-              style={{ color: "var(--text-muted)" }}
-            >
-              Yönetici Girişi
-            </Link>
+            <FooterDogWalkingEntry />
           </div>
         </div>
       </footer>
