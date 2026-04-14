@@ -329,7 +329,7 @@ export default function RandevuPage() {
                           setSelectedTime(t);
                         }}
                         disabled={unavailable}
-                        className="relative h-12 rounded-2xl px-3 text-sm font-medium shadow-sm transition"
+                        className="relative h-12 overflow-hidden rounded-2xl px-3 text-sm font-medium shadow-sm transition"
                         style={
                           unavailable
                             ? {
@@ -347,16 +347,11 @@ export default function RandevuPage() {
                       >
                         {t}
                         {unavailable ? (
-                          <span
-                            className="pointer-events-none absolute right-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                            style={
-                              isPastTime
-                                ? { background: "rgba(120, 120, 120, 0.14)", color: "rgba(80, 80, 80, 0.95)", border: "1px solid rgba(120, 120, 120, 0.22)" }
-                                : { background: "rgba(200, 90, 90, 0.16)", color: "rgba(120, 45, 45, 0.95)", border: "1px solid rgba(200, 90, 90, 0.22)" }
-                            }
-                          >
-                            Dolu
-                          </span>
+                          <img
+                            src="/booked.png"
+                            alt=""
+                            className="pointer-events-none absolute inset-0 m-auto w-12 opacity-90 rotate-[-12deg] sm:w-16"
+                          />
                         ) : null}
                       </button>
                     );
