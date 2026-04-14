@@ -390,20 +390,6 @@ export default function RandevuPage() {
 
               <div>
                 <label className="block text-sm" style={{ color: "var(--text-muted)" }}>
-                  Ek not
-                </label>
-                <textarea
-                  className="mt-2 w-full resize-none rounded-2xl px-4 py-3 outline-none"
-                  style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  rows={4}
-                  placeholder="Varsa özel notunuz"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm" style={{ color: "var(--text-muted)" }}>
                   Alerji durumu
                 </label>
                 <div className="mt-2 space-y-2">
@@ -447,6 +433,20 @@ export default function RandevuPage() {
                     placeholder="Varsa alerji bilgisini yazınız"
                   />
                 ) : null}
+              </div>
+
+              <div>
+                <label className="block text-sm" style={{ color: "var(--text-muted)" }}>
+                  Ek not
+                </label>
+                <textarea
+                  className="mt-2 w-full resize-none rounded-2xl px-4 py-3 outline-none"
+                  style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)" }}
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  rows={4}
+                  placeholder="Varsa özel notunuz"
+                />
               </div>
             </div>
 

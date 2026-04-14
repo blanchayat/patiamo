@@ -4,8 +4,20 @@ import { supabaseServiceServer } from "@/lib/supabaseServer";
 
 export async function GET(req: NextRequest) {
   try {
+    if (process.env.NODE_ENV !== "production") {
+      console.log("ADMIN_TOKEN exists:", !!process.env.ADMIN_TOKEN);
+      console.log("AUTH HEADER exists:", !!req.headers.get("authorization"));
+    }
     const auth = assertAdmin(req);
-    if (!auth.ok) return NextResponse.json({ error: auth.error ?? "Yetkisiz işlem" }, { status: 401 });
+    if (process.env.NODE_ENV !== "production") {
+      console.log("AUTH RESULT:", auth);
+    }
+    if (!auth.ok) {
+      if (process.env.NODE_ENV !== "production") {
+        console.log("[api/admin/bookings][GET] auth failed", { status: auth.status ?? 401, error: auth.error });
+      }
+      return NextResponse.json({ error: auth.error ?? "Unauthorized" }, { status: auth.status ?? 401 });
+    }
 
     const supabase = supabaseServiceServer();
     const { data, error } = await supabase
@@ -16,6 +28,7 @@ export async function GET(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ success: true, data: { bookings: data ?? [] } });
   } catch (e) {
+    console.error("[api/admin/bookings][GET] error:", e);
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Bir hata oluştu, lütfen tekrar deneyin." },
       { status: 500 },
@@ -25,8 +38,20 @@ export async function GET(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    if (process.env.NODE_ENV !== "production") {
+      console.log("ADMIN_TOKEN exists:", !!process.env.ADMIN_TOKEN);
+      console.log("AUTH HEADER exists:", !!req.headers.get("authorization"));
+    }
     const auth = assertAdmin(req);
-    if (!auth.ok) return NextResponse.json({ error: auth.error ?? "Yetkisiz işlem" }, { status: 401 });
+    if (process.env.NODE_ENV !== "production") {
+      console.log("AUTH RESULT:", auth);
+    }
+    if (!auth.ok) {
+      if (process.env.NODE_ENV !== "production") {
+        console.log("[api/admin/bookings][DELETE] auth failed", { status: auth.status ?? 401, error: auth.error });
+      }
+      return NextResponse.json({ error: auth.error ?? "Unauthorized" }, { status: auth.status ?? 401 });
+    }
 
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id")?.trim();
@@ -40,6 +65,7 @@ export async function DELETE(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ success: true });
   } catch (e) {
+    console.error("[api/admin/bookings][DELETE] error:", e);
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Bir hata oluştu, lütfen tekrar deneyin." },
       { status: 500 },

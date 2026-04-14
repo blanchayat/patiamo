@@ -44,6 +44,14 @@ function toBooleanAvailability(v: unknown): boolean {
   return Boolean(v);
 }
 
+function sanitizeAdminToken(input: string) {
+  const v = (input ?? "").trim();
+  if (!v) return "";
+  const lowered = v.toLowerCase();
+  if (lowered.startsWith("bearer ")) return v.slice(7).trim();
+  return v;
+}
+
 export default function AdminPage() {
   const [token, setToken] = useState("");
   const [isAuthed, setIsAuthed] = useState(false);
@@ -61,18 +69,21 @@ export default function AdminPage() {
 
   const headers = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
 
-  async function verifyToken(t: string): Promise<boolean> {
-    const v = t.trim();
-    if (!v) return false;
+  async function verifyToken(t: string): Promise<{ ok: boolean; status?: number }> {
+    const v = sanitizeAdminToken(t);
+    if (!v) return { ok: false, status: 401 };
     try {
+      if (process.env.NODE_ENV !== "production") {
+        console.log("[admin][verifyToken] token", { len: v.length, prefix: v.slice(0, 4) });
+        console.log("[admin][verifyToken] header", { authorization: `Bearer ${v}`.slice(0, 16) + "…" });
+      }
       const res = await fetch(`/api/admin/bookings`, {
         headers: { Authorization: `Bearer ${v}` },
         cache: "no-store",
       });
-      if (res.status === 401) return false;
-      return res.ok;
+      return { ok: res.ok, status: res.status };
     } catch {
-      return false;
+      return { ok: false, status: 500 };
     }
   }
 
@@ -80,10 +91,10 @@ export default function AdminPage() {
     try {
       const stored = localStorage.getItem("admin_token");
       if (stored && stored.trim()) {
-        const v = stored.trim();
+        const v = sanitizeAdminToken(stored);
         setToken(v);
-        verifyToken(v).then((ok) => {
-          if (ok) {
+        verifyToken(v).then((result) => {
+          if (result.ok) {
             setIsAuthed(true);
           } else {
             setIsAuthed(false);
@@ -186,15 +197,18 @@ export default function AdminPage() {
   }, [loginOpen]);
 
   async function submitLogin() {
-    const v = loginValue.trim();
+    const v = sanitizeAdminToken(loginValue);
     setLoginError("");
     if (!v) return;
 
     setLoading(true);
     setError("");
     try {
-      const ok = await verifyToken(v);
-      if (!ok) {
+      if (process.env.NODE_ENV !== "production") {
+        console.log("[admin][submitLogin] entered token", { len: v.length, prefix: v.slice(0, 4) });
+      }
+      const result = await verifyToken(v);
+      if (!result.ok) {
         setIsAuthed(false);
         setToken("");
         try {
@@ -202,7 +216,8 @@ export default function AdminPage() {
         } catch {
           // ignore
         }
-        setLoginError("Geçersiz kod");
+        if (result.status === 401) setLoginError("Geçersiz kod");
+        else setLoginError("Sunucu hatası");
         setLoginValue("");
         setSlots([]);
         setBookings([]);
