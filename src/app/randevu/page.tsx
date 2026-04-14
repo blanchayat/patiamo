@@ -329,7 +329,7 @@ export default function RandevuPage() {
                           setSelectedTime(t);
                         }}
                         disabled={unavailable}
-                        className="relative h-12 overflow-hidden rounded-2xl px-3 text-sm font-medium shadow-sm transition"
+                        className="relative h-12 rounded-2xl px-3 text-sm font-medium shadow-sm transition"
                         style={
                           unavailable
                             ? {
@@ -337,7 +337,7 @@ export default function RandevuPage() {
                                 color: "var(--text-muted)",
                                 border: "1px solid var(--border)",
                                 textDecoration: "line-through",
-                                opacity: 0.65,
+                                opacity: 0.6,
                                 cursor: "not-allowed",
                               }
                             : selected
@@ -346,13 +346,6 @@ export default function RandevuPage() {
                         }
                       >
                         {t}
-                        {unavailable ? (
-                          <img
-                            src="/booked.png"
-                            alt=""
-                            className="pointer-events-none absolute inset-0 m-auto w-12 opacity-90 rotate-[-12deg] sm:w-16"
-                          />
-                        ) : null}
                       </button>
                     );
                   })}
