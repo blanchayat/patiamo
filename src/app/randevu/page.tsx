@@ -179,72 +179,29 @@ export default function RandevuPage() {
         </p>
       </div>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-2">
+      <div className="mt-8 grid items-start gap-6 lg:grid-cols-2">
         <section
-          className="rounded-2xl p-5 shadow-sm"
+          className="self-start space-y-4 rounded-2xl p-4 shadow-sm"
           style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
         >
-          <h2 className="text-lg font-semibold tracking-tight" style={{ color: "var(--text)" }}>
-            Tek seferlik yürüyüş
-          </h2>
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <div
-              className="rounded-2xl p-4 shadow-sm"
-              style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
-                  30 dakika
-                </div>
-                <span
-                  className="rounded-full px-2.5 py-1 text-[10px] font-semibold"
-                  style={{ background: "rgba(120, 78, 45, 0.14)", color: "rgba(90, 55, 28, 0.95)", border: "1px solid rgba(120, 78, 45, 0.18)" }}
-                >
-                  Tanışma indirimi
-                </span>
-              </div>
-              <div className="mt-3 flex items-end gap-2">
-                <div className="text-2xl font-semibold" style={{ color: "var(--text)" }}>
-                  600 TL
-                </div>
-                <div className="pb-0.5 text-xs line-through" style={{ color: "var(--text-muted)" }}>
-                  1.000 TL
-                </div>
-              </div>
-            </div>
-
-            <div
-              className="rounded-2xl p-4 shadow-sm"
-              style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
-                  60 dakika
-                </div>
-                <span
-                  className="rounded-full px-2.5 py-1 text-[10px] font-semibold"
-                  style={{ background: "rgba(120, 78, 45, 0.14)", color: "rgba(90, 55, 28, 0.95)", border: "1px solid rgba(120, 78, 45, 0.18)" }}
-                >
-                  Tanışma indirimi
-                </span>
-              </div>
-              <div className="mt-3 flex items-end gap-2">
-                <div className="text-2xl font-semibold" style={{ color: "var(--text)" }}>
-                  1.000 TL
-                </div>
-                <div className="pb-0.5 text-xs line-through" style={{ color: "var(--text-muted)" }}>
-                  2.000 TL
-                </div>
-              </div>
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight" style={{ color: "var(--text)" }}>
+              İlk yürüyüşe özel fiyatlar
+            </h2>
+            <div className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
+              Tanışma fırsatı
             </div>
           </div>
 
+          <div className="rounded-2xl overflow-hidden shadow" style={{ border: "1px solid var(--border)" }}>
+            <img src="/pricing.png" alt="Fiyatlandırma" className="w-full h-auto object-cover" />
+          </div>
+
           <div
-            className="mt-4 flex flex-col gap-4 rounded-2xl p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+            className="flex flex-col gap-3 rounded-2xl p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
             style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
           >
-            <div>
+            <div className="min-w-0">
               <div className="text-sm font-medium" style={{ color: "var(--text)" }}>
                 Aylık paket
               </div>
@@ -254,7 +211,7 @@ export default function RandevuPage() {
             </div>
             <Link
               href="/"
-              className="inline-flex h-11 items-center justify-center rounded-2xl px-5 text-sm font-medium text-white shadow-sm transition hover:brightness-95"
+              className="inline-flex h-11 shrink-0 items-center justify-center rounded-2xl px-5 text-sm font-medium text-white shadow-sm transition hover:brightness-95"
               style={{ background: "var(--primary-strong)" }}
             >
               İletişime geçin
