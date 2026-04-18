@@ -235,13 +235,37 @@ export default function Home() {
         <div className="mx-auto w-full max-w-5xl px-5 py-6">
           <div className="grid gap-2 text-center text-xs sm:grid-cols-3 sm:items-center sm:text-left">
             <div className="font-medium" style={{ color: "var(--text)" }}>
-              PATİAMO
+              <div>PATİAMO</div>
+              <div className="mt-1 text-[11px] font-normal" style={{ color: "var(--primary-strong)", opacity: 0.72 }}>
+                Her adımda güven.
+              </div>
             </div>
             <div className="sm:text-center" style={{ color: "var(--text-muted)" }}>
               &copy; 2026
             </div>
-            <div className="sm:text-right" style={{ color: "var(--text-muted)" }}>
-              Web experience by Nurhayat Yılmaz
+            <div className="space-y-2 sm:text-right" style={{ color: "var(--text-muted)" }}>
+              <div>Web experience by Nurhayat Yılmaz</div>
+              <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 sm:justify-end">
+                <Link href="/gizlilik" className="transition hover:brightness-75">
+                  Gizlilik Politikası
+                </Link>
+                <Link href="/kullanim-kosullari" className="transition hover:brightness-75">
+                  Kullanım Koşulları
+                </Link>
+                <Link href="/hizmet-kosullari" className="transition hover:brightness-75">
+                  Hizmet Koşulları
+                </Link>
+              </div>
+              <div>
+                <a
+                  href="https://instagram.com/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center transition hover:brightness-75"
+                >
+                  Instagram
+                </a>
+              </div>
             </div>
           </div>
           <div className="mt-3 text-center sm:text-left">
