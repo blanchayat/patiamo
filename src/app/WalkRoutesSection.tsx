@@ -98,13 +98,6 @@ export default function WalkRoutesSection() {
                     {isOpen ? "Kapat" : "Görüntüle"}
                   </div>
                 </div>
-
-                <div
-                  className="mt-3 text-[11px]"
-                  style={{ color: "var(--text-muted)" }}
-                >
-                  Gerçek yürüyüş görüntüleri
-                </div>
               </button>
             </div>
           );
