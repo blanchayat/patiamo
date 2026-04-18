@@ -24,6 +24,52 @@ function Paw({ className, style }: { className: string; style: CSSProperties }) 
 export default function Home() {
   return (
     <div className="relative flex flex-1 flex-col" style={{ background: "var(--background)" }}>
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+        <Image
+          src="/paw-pattern.png"
+          alt=""
+          width={80}
+          height={80}
+          className="absolute left-3 top-10 h-12 w-12 opacity-[0.08] rotate-[-14deg] sm:left-8 sm:top-14 sm:h-16 sm:w-16"
+        />
+        <Image
+          src="/paw-pattern.png"
+          alt=""
+          width={90}
+          height={90}
+          className="absolute bottom-10 left-6 h-10 w-10 opacity-[0.07] rotate-[12deg] sm:bottom-16 sm:left-12 sm:h-14 sm:w-14"
+        />
+
+        <Image
+          src="/paw-pattern.png"
+          alt=""
+          width={110}
+          height={110}
+          className="absolute right-6 top-16 hidden h-20 w-20 opacity-[0.06] rotate-[18deg] sm:block"
+        />
+        <Image
+          src="/paw-pattern.png"
+          alt=""
+          width={90}
+          height={90}
+          className="absolute left-10 top-1/2 hidden h-14 w-14 -translate-y-1/2 opacity-[0.05] rotate-[-8deg] sm:block"
+        />
+        <Image
+          src="/paw-pattern.png"
+          alt=""
+          width={100}
+          height={100}
+          className="absolute right-10 top-[56%] hidden h-16 w-16 -translate-y-1/2 opacity-[0.07] rotate-[6deg] sm:block"
+        />
+        <Image
+          src="/paw-pattern.png"
+          alt=""
+          width={120}
+          height={120}
+          className="absolute bottom-10 right-12 hidden h-24 w-24 opacity-[0.06] rotate-[-16deg] sm:block"
+        />
+      </div>
+
       <header className="relative z-10 mx-auto flex w-full max-w-5xl items-center justify-between px-5 py-6">
         <Link href="/" className="flex items-center gap-4" aria-label="PATİAMO ana sayfa">
           <Image
