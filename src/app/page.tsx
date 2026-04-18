@@ -258,12 +258,12 @@ export default function Home() {
               </div>
               <div>
                 <a
-                  href="https://instagram.com/"
+                  href="https://www.instagram.com/patiamo.walk/"
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center justify-center transition hover:brightness-75"
                 >
-                  Instagram
+                  @patiamo.walk
                 </a>
               </div>
             </div>
