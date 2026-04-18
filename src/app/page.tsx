@@ -123,10 +123,6 @@ export default function Home() {
                 className="group relative rounded-3xl p-6 shadow-sm transition-transform duration-200 hover:scale-[1.02] hover:shadow-md"
                 style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
               >
-                <Paw
-                  className="pointer-events-none absolute -right-4 -top-4 hidden h-14 w-14 sm:block"
-                  style={{ color: "var(--primary-strong)", opacity: 0.05 }}
-                />
                 <div className="text-lg font-semibold tracking-tight" style={{ color: "var(--text)", letterSpacing: "0.01em" }}>
                   Hizmet Kapsamı
                 </div>

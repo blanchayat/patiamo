@@ -2,6 +2,43 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseServiceServer } from "@/lib/supabaseServer";
 import { isValidTimeSlot, isValidTurkishPhone, normalizePhone } from "@/lib/validators";
 
+function getIstanbulNowParts() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Istanbul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+
+  const map: Record<string, string> = {};
+  for (const p of parts) {
+    if (p.type !== "literal") map[p.type] = p.value;
+  }
+
+  const yyyy = map.year ?? "";
+  const mm = map.month ?? "";
+  const dd = map.day ?? "";
+  const hh = map.hour ?? "00";
+  const mi = map.minute ?? "00";
+
+  return {
+    dateISO: `${yyyy}-${mm}-${dd}`,
+    minutes: Number(hh) * 60 + Number(mi),
+  };
+}
+
+function parseTimeToMinutes(t: string) {
+  const base = String(t ?? "").trim().slice(0, 5);
+  const [h, m] = base.split(":");
+  const hh = Number(h);
+  const mm = Number(m);
+  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return NaN;
+  return hh * 60 + mm;
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
 
@@ -57,6 +94,18 @@ export async function POST(req: NextRequest) {
   const normalizedTime = time.padStart(5, "0").trim();
   const normalizedTimeWithSeconds =
     normalizedTime.length === 5 ? `${normalizedTime}:00` : normalizedTime;
+
+  const now = getIstanbulNowParts();
+  if (normalizedDate < now.dateISO) {
+    return NextResponse.json({ error: "Bu saat için artık randevu alınamaz." }, { status: 409 });
+  }
+
+  if (normalizedDate === now.dateISO) {
+    const slotMinutes = parseTimeToMinutes(normalizedTime);
+    if (Number.isFinite(slotMinutes) && slotMinutes < now.minutes + 30) {
+      return NextResponse.json({ error: "Bu saat için artık randevu alınamaz." }, { status: 409 });
+    }
+  }
 
   const supabase = supabaseServiceServer();
 

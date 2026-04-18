@@ -69,10 +69,17 @@ export default function RandevuPage() {
 
   const orderedSlots = useMemo(() => slots, [slots]);
 
-  const istanbulNow = useMemo(() => getIstanbulNowParts(), []);
+  const [istanbulNow, setIstanbulNow] = useState(() => getIstanbulNowParts());
   const todayISO = istanbulNow.dateISO;
   const isPastDate = selectedDate < todayISO;
   const isToday = selectedDate === todayISO;
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setIstanbulNow(getIstanbulNowParts());
+    }, 20_000);
+    return () => window.clearInterval(id);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -107,6 +114,14 @@ export default function RandevuPage() {
   useEffect(() => {
     if (isPastDate) setSelectedTime("");
   }, [isPastDate]);
+
+  useEffect(() => {
+    if (!selectedTime) return;
+    if (!isToday) return;
+    const mins = parseTimeToMinutes(selectedTime);
+    if (!Number.isFinite(mins)) return;
+    if (mins < istanbulNow.minutes + 30) setSelectedTime("");
+  }, [selectedTime, isToday, istanbulNow.minutes]);
 
   async function submit() {
     setSubmitting(true);
@@ -318,7 +333,8 @@ export default function RandevuPage() {
                   {orderedSlots.map((s) => {
                     const t = s.time;
                     const selected = t === selectedTime;
-                    const isPastTime = isToday ? parseTimeToMinutes(t) < istanbulNow.minutes : false;
+                    const slotMinutes = parseTimeToMinutes(t);
+                    const isPastTime = isToday ? slotMinutes < istanbulNow.minutes + 30 : false;
                     const unavailable = s.is_available !== true || isPastTime;
                     return (
                       <button
